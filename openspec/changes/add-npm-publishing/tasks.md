@@ -67,16 +67,16 @@
 
 ## 9. First CI release (`0.1.1`)
 
-- [ ] 9.1 Bump the version with `npm version 0.1.1 --no-git-tag-version`, then `npm run typecheck && npm test && npm run build`.
-- [ ] 9.2 Commit as `chore: release 0.1.1`, tag `v0.1.1`, and push both: `git push origin master && git push origin v0.1.1`.
-- [ ] 9.3 Watch the workflow with `gh run list --workflow=publish.yml --limit 1` and `gh run watch <run-id>`; confirm every gate passed and `npm publish` succeeded.
-- [ ] 9.4 Verify `npm view symlink-git-ignored@0.1.1 version`, then run `npm audit signatures` in a throwaway install (`npm i symlink-git-ignored@0.1.1`) and confirm the package reports a verified attestation.
-- [ ] 9.5 Confirm the npm package page shows the provenance badge and the repository link, and that `npx -y symlink-git-ignored@latest --version` reports the new version.
-- [ ] 9.6 Confirm the CI workflow also ran green for the release commit on Node 22 and 24.
+- [x] 9.1 Bump the version with `npm version 0.1.1 --no-git-tag-version`, then `npm run typecheck && npm test && npm run build`.
+- [x] 9.2 Commit as `chore: release 0.1.1`, tag `v0.1.1`, and push both: `git push origin master && git push origin v0.1.1`.
+- [x] 9.3 Watch the workflow with `gh run list --workflow=publish.yml --limit 1` and `gh run watch <run-id>`; confirm every gate passed and `npm publish` succeeded.
+- [x] 9.4 Verify `npm view symlink-git-ignored@0.1.1 version`, then run `npm audit signatures` in a throwaway install (`npm i symlink-git-ignored@0.1.1`) and confirm the package reports a verified attestation.
+- [x] 9.5 Confirm the npm package page shows the provenance badge and the repository link, and that `npx -y symlink-git-ignored@latest --version` reports the new version.
+- [x] 9.6 Confirm the CI workflow also ran green for the release commit on Node 22 and 24.
 
 ## 10. Verification
 
 - [x] 10.1 `npm run typecheck && npm run build && npm test` pass locally from a clean checkout.
-- [ ] 10.2 `npm pack --dry-run` lists only `dist/`, `README.md`, `LICENSE`, and `package.json`, and `files`/`bin`/`engines` match the npm view output.
-- [ ] 10.3 README badges resolve, the install commands work, and the release section matches the actual workflow filename and tag format.
+- [x] 10.2 `npm pack --dry-run` lists only `dist/`, `README.md`, `LICENSE`, and `package.json`, and `files`/`bin`/`engines` match the npm view output.
+- [x] 10.3 README badges resolve, the install commands work, and the release section matches the actual workflow filename and tag format.
 - [x] 10.4 `openspec validate add-npm-publishing --strict` passes.
