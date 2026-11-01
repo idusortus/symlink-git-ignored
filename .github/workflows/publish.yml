@@ -1,0 +1,79 @@
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  id-token: write # npm Trusted Publishing (OIDC)
+
+concurrency:
+  group: publish-npm
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          # No cache on purpose: release builds must not depend on a mutable cache.
+          # (actions/setup-node@v4 only caches when `cache` is set.)
+
+      - name: Verify tag matches package version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="${GITHUB_REF_NAME#v}"
+          if [ "$TAG" != "$VERSION" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match package.json version ${VERSION}"
+            exit 1
+          fi
+          echo "Releasing ${VERSION}"
+
+      - name: Verify tag commit is on master
+        run: |
+          git fetch origin master
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
+            echo "::error::Tag commit $GITHUB_SHA is not reachable from origin/master"
+            exit 1
+          fi
+
+      - name: Verify version is unpublished
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "symlink-git-ignored@${VERSION}" version >/dev/null 2>&1; then
+            echo "::error::symlink-git-ignored@${VERSION} is already published"
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+      - name: Publish to npm
+        # npm Trusted Publishing (OIDC). actions/setup-node writes an
+        # `_authToken` line into the user .npmrc; remove it so npm does not
+        # fall back to a token and instead exchanges the OIDC token.
+        run: |
+          if [ -n "${NPM_CONFIG_USERCONFIG:-}" ] && [ -f "$NPM_CONFIG_USERCONFIG" ]; then
+            sed -i '/_authToken/d' "$NPM_CONFIG_USERCONFIG"
+          fi
+          npm publish --access public

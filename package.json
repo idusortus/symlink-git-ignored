@@ -4,18 +4,25 @@
   "description": "Create symlinks in a git worktree to the gitignored files an LLM coding assistant needs, driven by a committed .llm-files manifest.",
   "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/idusortus/symlink-git-ignored.git"
+  },
+  "homepage": "https://github.com/idusortus/symlink-git-ignored#readme",
+  "bugs": {
+    "url": "https://github.com/idusortus/symlink-git-ignored/issues"
+  },
+  "author": "idusortus (https://github.com/idusortus)",
   "bin": {
     "symlink-git-ignored": "dist/cli.js"
   },
-  "main": "dist/cli.js",
-  "types": "dist/cli.d.ts",
   "files": [
     "dist",
     "README.md",
     "LICENSE"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=22.12.0"
   },
   "publishConfig": {
     "access": "public"
@@ -34,7 +41,9 @@
     "gitignore",
     "llm",
     "ai",
-    "dotfiles"
+    "dotfiles",
+    "claude",
+    "opencode"
   ],
   "dependencies": {
     "commander": "^15.0.0",

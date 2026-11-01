@@ -1,5 +1,8 @@
 # symlink-git-ignored
 
+[![npm version](https://img.shields.io/npm/v/symlink-git-ignored.svg)](https://www.npmjs.com/package/symlink-git-ignored)
+[![CI](https://github.com/idusortus/symlink-git-ignored/actions/workflows/ci.yml/badge.svg)](https://github.com/idusortus/symlink-git-ignored/actions/workflows/ci.yml)
+
 Git worktrees share history but not working-tree files. Every gitignored file an LLM coding assistant relies on — `.env`, `.claude/`, `.opencode/`, local notes, MCP credentials — is missing from a fresh worktree. This tool recreates those files as symlinks, driven by one committed manifest.
 
 ```bash
@@ -8,6 +11,16 @@ npx symlink-git-ignored        # symlink everything listed in .llm-files
 ```
 
 The real files stay in your primary checkout (the one you ran `git worktree add` from). Nothing is copied, and no file content is ever touched.
+
+## Install
+
+Requires **Node >= 22.12.0**.
+
+```bash
+npx symlink-git-ignored             # run once inside a worktree
+npx symlink-git-ignored select      # add gitignored paths to .llm-files
+npm install -g symlink-git-ignored  # optional global install
+```
 
 ## The manifest
 
@@ -133,6 +146,27 @@ Add your own with `--exclude '*.log' --exclude '*/tmp'`, or pass `--no-default-e
 - **Source detection assumes the primary worktree holds the real files.** That is the checkout you ran `git worktree add` from. If it moved or was removed, pass `--from`.
 - **POSIX is the supported platform.** On Windows, symlink creation needs Developer Mode or elevation; the tool reports the OS error instead of falling back to junctions or copies.
 - **`--expand` can be slow** in repositories with large ignored trees. The default collapses wholly ignored directories into one candidate.
+
+## Releasing
+
+Releases are published from tags. From a clean `master` checkout:
+
+```bash
+npm version patch --no-git-tag-version   # or: npm version 1.2.3 --no-git-tag-version
+git commit -am "chore: release X.Y.Z"
+git tag vX.Y.Z
+git push origin master vX.Y.Z
+```
+
+Pushing the tag runs `.github/workflows/publish.yml`, which refuses to publish unless the tag matches `package.json`, the tagged commit is on `master`, and the version does not already exist on the registry.
+
+Publishing uses npm Trusted Publishing (OIDC), so no npm token is stored in this repository. The trusted publisher is:
+
+- repository: `idusortus/symlink-git-ignored`
+- workflow: `publish.yml`
+- actions: `npm publish` allowed (configurations created after 3 September 2026 default to stage-only)
+
+A new trusted-publisher configuration must complete its first successful publish within two days or it expires. `0.1.0` was published manually to bootstrap the package; provenance attestations begin with `0.1.1`.
 
 ## Development
 
