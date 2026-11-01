@@ -1,0 +1,50 @@
+{
+  "name": "symlink-git-ignored",
+  "version": "0.1.0",
+  "description": "Create symlinks in a git worktree to the gitignored files an LLM coding assistant needs, driven by a committed .llm-files manifest.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "symlink-git-ignored": "dist/cli.js"
+  },
+  "main": "dist/cli.js",
+  "types": "dist/cli.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "pretest": "npm run typecheck",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "keywords": [
+    "git",
+    "worktree",
+    "symlink",
+    "gitignore",
+    "llm",
+    "ai",
+    "dotfiles"
+  ],
+  "dependencies": {
+    "commander": "^15.0.0",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/prompts": "^2.4.9",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}
