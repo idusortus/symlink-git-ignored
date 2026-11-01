@@ -160,7 +160,9 @@ git push origin master vX.Y.Z
 
 Pushing the tag runs `.github/workflows/publish.yml`, which refuses to publish unless the tag matches `package.json`, the tagged commit is on `master`, and the version does not already exist on the registry.
 
-Publishing uses npm Trusted Publishing (OIDC), so no npm token is stored in this repository. The trusted publisher is:
+Publishing uses npm Trusted Publishing (OIDC), so no npm token is stored in this repository. Package publishing access is configured as **Require two-factor authentication and disallow tokens**: manual publishes must complete an interactive 2FA prompt, granular access tokens cannot publish this package, and CI publishes only through the trusted publisher.
+
+The trusted publisher is:
 
 - repository: `idusortus/symlink-git-ignored`
 - workflow: `publish.yml`
