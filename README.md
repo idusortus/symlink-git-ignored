@@ -22,6 +22,14 @@ npx symlink-git-ignored select      # add gitignored paths to .llm-files
 npm install -g symlink-git-ignored  # optional global install
 ```
 
+## Documentation
+
+- **Using the tool** — this README covers install, commands, flags, statuses, exit codes, and safety.
+- **Contributing** — [CONTRIBUTING.md](https://github.com/idusortus/symlink-git-ignored/blob/master/CONTRIBUTING.md): setup, change workflow, conventions, release, and security reporting.
+- **Architecture** — [docs/architecture.md](https://github.com/idusortus/symlink-git-ignored/blob/master/docs/architecture.md): runtime flow, module map, plan model, and safety invariants.
+- **Testing** — [docs/testing.md](https://github.com/idusortus/symlink-git-ignored/blob/master/docs/testing.md): the Vitest suite, real-git fixtures, and how to add a test.
+- **AI agents** — [AGENTS.md](https://github.com/idusortus/symlink-git-ignored/blob/master/AGENTS.md) for working on this repository, and [docs/AGENT_PROMPT.md](https://github.com/idusortus/symlink-git-ignored/blob/master/docs/AGENT_PROMPT.md) for having an agent configure the tool in another repository.
+
 ## The manifest
 
 `.llm-files` lives at the repo root and is committed, so every worktree receives it through git:
@@ -181,6 +189,8 @@ node dist/cli.js --help
 ```
 
 Integration tests are skipped on Windows because they exercise real symlinks.
+
+See [CONTRIBUTING.md](https://github.com/idusortus/symlink-git-ignored/blob/master/CONTRIBUTING.md) for setup, review expectations, and the change workflow, and [docs/architecture.md](https://github.com/idusortus/symlink-git-ignored/blob/master/docs/architecture.md) plus [docs/testing.md](https://github.com/idusortus/symlink-git-ignored/blob/master/docs/testing.md) for how the code and tests are organized.
 
 ## License
 
