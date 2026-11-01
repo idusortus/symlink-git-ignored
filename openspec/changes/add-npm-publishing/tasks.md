@@ -37,32 +37,32 @@
 
 ## 5. Pre-public checks and commit
 
-- [ ] 5.1 Add `.npmrc` and `.env` to `.gitignore` as a safety net; confirm `git ls-files` contains no `.npmrc`, `.env`, `*.pem`, or key material.
-- [ ] 5.2 Secret-scan the working tree and history: `git grep -nE '(npm_[A-Za-z0-9]{36}|ghp_[A-Za-z0-9]{36}|AKIA[0-9A-Z]{16}|BEGIN (RSA|OPENSSH|EC) PRIVATE KEY)'` and the same pattern over `git log -p --all`; investigate every hit (the two `init` commits should be clean).
-- [ ] 5.3 Confirm `git status` shows only intended files (implementation, tests, docs, workflows, OpenSpec change) and that `dist/`, `node_modules/`, and tarballs are ignored.
-- [ ] 5.4 Commit everything with a descriptive message and push `master` to `origin`; confirm `git status` is clean and `git log origin/master..master` is empty.
-- [ ] 5.5 Re-run `npm ci && npm test && npm run build` from the committed tree; confirm the tarball built from a clean checkout is identical in file list to `npm pack --dry-run`.
+- [x] 5.1 Add `.npmrc` and `.env` to `.gitignore` as a safety net; confirm `git ls-files` contains no `.npmrc`, `.env`, `*.pem`, or key material.
+- [x] 5.2 Secret-scan the working tree and history: `git grep -nE '(npm_[A-Za-z0-9]{36}|ghp_[A-Za-z0-9]{36}|AKIA[0-9A-Z]{16}|BEGIN (RSA|OPENSSH|EC) PRIVATE KEY)'` and the same pattern over `git log -p --all`; investigate every hit (the two `init` commits should be clean).
+- [x] 5.3 Confirm `git status` shows only intended files (implementation, tests, docs, workflows, OpenSpec change) and that `dist/`, `node_modules/`, and tarballs are ignored.
+- [x] 5.4 Commit everything with a descriptive message and push `master` to `origin`; confirm `git status` is clean and `git log origin/master..master` is empty.
+- [x] 5.5 Re-run `npm ci && npm test && npm run build` from the committed tree; confirm the tarball built from a clean checkout is identical in file list to `npm pack --dry-run`.
 
 ## 6. Repository visibility
 
-- [ ] 6.1 Flip the repository public only after 5.2 passes: `gh api -X PATCH repos/idusortus/symlink-git-ignored -F private=false`.
-- [ ] 6.2 Verify with `gh api repos/idusortus/symlink-git-ignored --jq .visibility` → `public`, and confirm Actions remain enabled (`gh api repos/idusortus/symlink-git-ignored/actions/permissions`).
-- [ ] 6.3 Confirm the public repository shows the committed source and that `git+https://github.com/idusortus/symlink-git-ignored.git` resolves.
-- [ ] 6.4 Optionally enable tag protection/rules for `v*` and branch protection for `master` now that the free-plan restriction lifted; record whichever choice was made.
+- [x] 6.1 Flip the repository public only after 5.2 passes: `gh api -X PATCH repos/idusortus/symlink-git-ignored -F private=false`.
+- [x] 6.2 Verify with `gh api repos/idusortus/symlink-git-ignored --jq .visibility` → `public`, and confirm Actions remain enabled (`gh api repos/idusortus/symlink-git-ignored/actions/permissions`).
+- [x] 6.3 Confirm the public repository shows the committed source and that `git+https://github.com/idusortus/symlink-git-ignored.git` resolves.
+- [x] 6.4 Optionally enable tag protection/rules for `v*` and branch protection for `master` now that the free-plan restriction lifted; record whichever choice was made.
 
 ## 7. Bootstrap publish (`0.1.0`) — maintainer terminal required
 
-- [ ] 7.1 Run `npm whoami`; it currently fails with `ENEEDAUTH`. **Pause and ask the maintainer to run `npm login`** (2FA/OTP may be required), then re-run `npm whoami` and confirm the account that will own the package.
-- [ ] 7.2 From the clean checkout at the pushed commit, run `npm publish --access public`; `prepublishOnly` builds and tests first. Stop on any failure rather than retrying blindly.
-- [ ] 7.3 Verify `npm view symlink-git-ignored version` → `0.1.0`, and `npm view symlink-git-ignored repository.url bin engines` shows the expected values.
-- [ ] 7.4 Verify the installed CLI: `npx -y symlink-git-ignored@0.1.0 --version` → `0.1.0`, and `npx -y symlink-git-ignored@0.1.0 --help` lists `link`, `select`, and `list`.
-- [ ] 7.5 Confirm the registry tarball file list matches the local pack (`npm view symlink-git-ignored@0.1.0 dist.tarball`, download/inspect if needed) and contains no `src/`, `test/`, or OpenSpec files.
+- [x] 7.1 Run `npm whoami`; it currently fails with `ENEEDAUTH`. **Pause and ask the maintainer to run `npm login`** (2FA/OTP may be required), then re-run `npm whoami` and confirm the account that will own the package.
+- [x] 7.2 From the clean checkout at the pushed commit, run `npm publish --access public`; `prepublishOnly` builds and tests first. Stop on any failure rather than retrying blindly.
+- [x] 7.3 Verify `npm view symlink-git-ignored version` → `0.1.0`, and `npm view symlink-git-ignored repository.url bin engines` shows the expected values.
+- [x] 7.4 Verify the installed CLI: `npx -y symlink-git-ignored@0.1.0 --version` → `0.1.0`, and `npx -y symlink-git-ignored@0.1.0 --help` lists `link`, `select`, and `list`.
+- [x] 7.5 Confirm the registry tarball file list matches the local pack (`npm view symlink-git-ignored@0.1.0 dist.tarball`, download/inspect if needed) and contains no `src/`, `test/`, or OpenSpec files.
 
 ## 8. Trusted publisher — maintainer authentication required
 
-- [ ] 8.1 Run `npm trust github symlink-git-ignored --file publish.yml --repo idusortus/symlink-git-ignored --allow-publish -y`; pause for OTP if prompted. Do not store any token in the repository.
-- [ ] 8.2 Verify with `npm trust list symlink-git-ignored` that the GitHub configuration names `idusortus`, `symlink-git-ignored`, `publish.yml`, and allows `npm publish` (not stage-only).
-- [ ] 8.3 Record the configuration date; the first successful publish must happen within two days or the configuration expires.
+- [x] 8.1 Run `npm trust github symlink-git-ignored --file publish.yml --repo idusortus/symlink-git-ignored --allow-publish -y`; pause for OTP if prompted. Do not store any token in the repository.
+- [x] 8.2 Verify with `npm trust list symlink-git-ignored` that the GitHub configuration names `idusortus`, `symlink-git-ignored`, `publish.yml`, and allows `npm publish` (not stage-only).
+- [x] 8.3 Record the configuration date; the first successful publish must happen within two days or the configuration expires.
 - [ ] 8.4 Optional hardening: on npmjs.com → package settings → Publishing access, select "Require two-factor authentication and disallow tokens" after 9.4 proves OIDC works.
 
 ## 9. First CI release (`0.1.1`)
@@ -76,7 +76,7 @@
 
 ## 10. Verification
 
-- [ ] 10.1 `npm run typecheck && npm run build && npm test` pass locally from a clean checkout.
+- [x] 10.1 `npm run typecheck && npm run build && npm test` pass locally from a clean checkout.
 - [ ] 10.2 `npm pack --dry-run` lists only `dist/`, `README.md`, `LICENSE`, and `package.json`, and `files`/`bin`/`engines` match the npm view output.
 - [ ] 10.3 README badges resolve, the install commands work, and the release section matches the actual workflow filename and tag format.
-- [ ] 10.4 `openspec validate add-npm-publishing --strict` passes.
+- [x] 10.4 `openspec validate add-npm-publishing --strict` passes.
