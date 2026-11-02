@@ -23,6 +23,6 @@
 
 - [x] 4.1 Parse both workflow YAML files locally and confirm `on`, `permissions`, `jobs`, and all inputs are valid; verify the v6 action inputs used (`fetch-depth`, `node-version`, `registry-url`, `cache`, `package-manager-cache`) exist in their `action.yml`.
 - [x] 4.2 Confirm the only diff is the runner labels, action majors, the cache input/comment, and docs — no step, command, permission, or matrix changes.
-- [ ] 4.3 Commit and push `master`; confirm the CI workflow runs green on Node 22 and 24 and that the Node 20 deprecation and `ubuntu-latest` migration annotations are gone from the run.
-- [ ] 4.4 Record that the publish workflow's v6 actions are verified on the next `v*` tag release (not in this change), and that a follow-up will move `ubuntu-24.04` to the next stable image when appropriate.
-- [ ] 4.5 `openspec validate bump-ci-actions --strict` passes with `specs` skipped.
+- [x] 4.3 Commit and push `master`; confirm the CI workflow runs green on Node 22 and 24 and that the Node 20 deprecation and `ubuntu-latest` migration annotations are gone from the run.
+- [x] 4.4 Record that the publish workflow's v6 actions are verified on the next `v*` tag release (not in this change), and that a follow-up will move `ubuntu-24.04` to the next stable image when appropriate.
+- [x] 4.5 `openspec validate bump-ci-actions --strict` passes with `specs` skipped.
