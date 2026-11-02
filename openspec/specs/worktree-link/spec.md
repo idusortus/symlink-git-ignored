@@ -22,7 +22,7 @@ The tool SHALL resolve the destination root with `git rev-parse --show-toplevel`
 
 ### Requirement: Source checkout resolution
 
-The source root SHALL be, in order of precedence: the path passed with `--from`, then the first worktree reported by `git worktree list --porcelain`. The tool SHALL fail with a clear message when the resolved source is not a directory, is the same checkout as the destination, or when only one worktree exists and it is the current one. A bare repository SHALL be rejected as a source.
+The source root SHALL be, in order of precedence: the path passed with `--from`, then the first worktree reported by `git worktree list --porcelain`. A bare repository SHALL be rejected as a source. `link` and `list` SHALL fail with a clear message when the resolved source is not a directory, is the same checkout as the destination, or when only one worktree exists and it is the current one. `select` SHALL accept the current checkout as its candidate source and write the manifest there; see the `llm-file-manifest` capability.
 
 #### Scenario: Primary worktree is chosen by default
 
@@ -36,7 +36,7 @@ The source root SHALL be, in order of precedence: the path passed with `--from`,
 
 #### Scenario: Running in the source checkout
 
-- **WHEN** the current checkout root equals the resolved source root
+- **WHEN** `link` or `list` runs with the current checkout equal to the resolved source root
 - **THEN** the command refuses to run, exits non-zero, and creates nothing
 
 ### Requirement: Relative symlink creation

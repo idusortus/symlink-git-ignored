@@ -5,7 +5,7 @@ The suite is Vitest 5. Unit tests cover pure logic; integration tests build a re
 ## Commands
 
 ```bash
-npm test                            # pretest runs tsc --noEmit, then all 66 tests
+npm test                            # pretest runs tsc --noEmit, then all 71 tests
 npx vitest run test/plan.test.ts    # one file
 npx vitest run -t "backup"          # tests whose name matches
 npx vitest                          # watch mode

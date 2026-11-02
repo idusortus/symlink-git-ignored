@@ -109,6 +109,14 @@ describePosix("link", () => {
     expect(result.stderr).toContain("current checkout");
   });
 
+  it("keeps list refusing the source checkout", async () => {
+    fixture = await createRepoFixture();
+
+    const result = await runCli(fixture, ["list"], { cwd: fixture.primary });
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("current checkout");
+  });
+
   it("fails outside a git working tree", async () => {
     fixture = await createRepoFixture();
 
@@ -253,8 +261,30 @@ describePosix("select", () => {
     const text = await readFile(linkPath(".llm-files"), "utf8");
     expect(text.startsWith("#")).toBe(true);
     expect(text).toContain(".env");
+    expect(await readFile(path.join(fixture.primary, ".llm-files"), "utf8").catch(() => null)).toBeNull();
 
     expect((await runCli(fixture, ["link"])).code).toBe(0);
+  });
+
+  it("creates the manifest in the primary checkout with no linked worktree", async () => {
+    fixture = await createRepoFixture({ manifest: null, worktree: false });
+
+    const result = await runCli(fixture, ["select", "--add", ".env"], { cwd: fixture.primary });
+    expect(result.code).toBe(0);
+
+    const text = await readFile(path.join(fixture.primary, ".llm-files"), "utf8");
+    expect(text.startsWith("#")).toBe(true);
+    expect(text).toContain(".env");
+  });
+
+  it("writes to the primary checkout when run there, even with a linked worktree", async () => {
+    fixture = await createRepoFixture({ manifest: null });
+
+    const result = await runCli(fixture, ["select", "--add", ".env"], { cwd: fixture.primary });
+    expect(result.code).toBe(0);
+
+    expect(await readFile(path.join(fixture.primary, ".llm-files"), "utf8")).toContain(".env");
+    expect(await readFile(linkPath(".llm-files"), "utf8").catch(() => null)).toBeNull();
   });
 
   it("rejects paths outside the checkout", async () => {

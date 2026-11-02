@@ -22,7 +22,7 @@ argv
      │    └─ same resolution + buildPlan({ mode: "list" }); never applies
      │
      └─ select ── src/commands/select.ts
-          ├─ getCheckoutRoot() + listWorktrees() + resolveSource()
+          ├─ getCheckoutRoot() + listWorktrees() + resolveSource()  (allowSameRoot)
           ├─ listIgnoredEntries()     git ls-files --others --ignored ...
           ├─ createExcludeMatcher()   built-in denylist + --exclude patterns
           ├─ pickCandidates()         prompts autocompleteMultiselect
@@ -115,6 +115,7 @@ All version-control knowledge is delegated to `git`; nothing reimplements gitign
 
 - **Delegate ignore semantics to git** rather than the `ignore` package: one source of truth, no reimplementation of precedence/negation.
 - **Source = first `git worktree list` entry.** That is the checkout `git worktree add` was run from; `--from` overrides it.
+- **`select` may use its own checkout as the source.** It only reads ignored paths and writes the manifest, so it opts out of the source-equals-destination guard; `link` and `list` still reject that case.
 - **No ledger.** The tool cannot distinguish its own links from identical ones, but both satisfy the intent.
 - **Tracked manifest.** `select` edits a committed file; the change appears on the current branch by design.
 

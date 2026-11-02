@@ -47,6 +47,8 @@ docs/local/
 - Paths are literal: no globs, no `..`, no absolute paths.
 - Duplicates are reported; a path already covered by a directory entry is reported as `shadowed`.
 
+Create it with `npx symlink-git-ignored select` in your primary checkout, then commit it. The manifest is written in the checkout where `select` runs; run it in a worktree only if you want the file on that worktree's branch.
+
 ## Commands
 
 ### `link` (default)

@@ -81,7 +81,12 @@ export async function runSelect(options: SelectOptions): Promise<number> {
   const destinationRoot = await getCheckoutRoot(process.cwd());
   const manifest = await readManifest(destinationRoot);
   const worktrees = await listWorktrees(destinationRoot);
-  const sourceRoot = await resolveSource({ from: options.from, destinationRoot, worktrees });
+  const sourceRoot = await resolveSource({
+    from: options.from,
+    destinationRoot,
+    worktrees,
+    allowSameRoot: true,
+  });
 
   const matcher = createExcludeMatcher({
     useDefaults: options.useDefaultExcludes !== false,

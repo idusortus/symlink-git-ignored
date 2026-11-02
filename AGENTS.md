@@ -34,7 +34,7 @@
 ```bash
 npm ci
 npm run typecheck
-npm test                            # 66 tests in 6 suites; spawns the CLI in real git worktrees
+npm test                            # 71 tests in 6 suites; spawns the CLI in real git worktrees
 npx vitest run test/plan.test.ts    # one suite
 npx vitest                          # watch mode
 npm run build
@@ -46,6 +46,7 @@ node dist/cli.js --help
 ## Invariants to preserve
 
 - **Containment**: before writing, the deepest existing ancestor of a destination must resolve inside the destination checkout; otherwise the entry is `unsafe` and skipped. This lives in `findContainmentViolation` and is re-checked in `applyPlan`.
+- **Source resolution**: `link` and `list` refuse when the source checkout is the destination; `select` opts out (`allowSameRoot`) so `.llm-files` can be created in the primary checkout.
 - **Manifest validation**: reject absolute paths, `..` segments, paths resolving outside the checkout, and anything at or under `.git`. Nested entries lose to their ancestor and are reported as `shadowed`.
 - **Collisions skip by default**: `--force` replaces, `--backup` renames to `<name>.bak-<YYYYMMDDHHmmss>` (with numeric suffixes), dangling symlinks are repaired. `--force` plus `--backup` is a usage error.
 - **The denylist applies only to `select` candidate discovery.** Entries already in `.llm-files` are always linked.

@@ -35,6 +35,9 @@ STEP 1 — CHOOSE PATHS AND WRITE THE MANIFEST (primary checkout)
 - Add them with:
   `npx -y symlink-git-ignored@0.1.2 select --add <paths...>`
   Use the interactive `select` only when a TTY is available.
+- Run this from the primary checkout. The manifest is written into the checkout where
+  the command runs; running it in a worktree would leave `.llm-files` on that worktree's
+  branch instead.
 - Never include node_modules, dist, build, out, .next, .cache, target, coverage, or binary
   files. Do not use --no-default-excludes to get around that rule.
 - Show `git diff -- .llm-files`, then ask before committing. Commit the manifest so the

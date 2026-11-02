@@ -17,6 +17,8 @@ export interface FixtureOptions {
   manifest?: string | null;
   trackedFiles?: Record<string, string>;
   ignoredFiles?: Record<string, string>;
+  /** Set to false to create a repository with no linked worktree. */
+  worktree?: boolean;
 }
 
 export interface Fixture {
@@ -118,7 +120,9 @@ export async function createRepoFixture(options: FixtureOptions = {}): Promise<F
     await writeFile(absolutePath, contents);
   }
 
-  await git(["worktree", "add", worktree, "-b", "feature"]);
+  if (options.worktree !== false) {
+    await git(["worktree", "add", worktree, "-b", "feature"]);
+  }
 
   return {
     baseDir,

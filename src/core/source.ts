@@ -8,6 +8,8 @@ export interface ResolveSourceOptions {
   from?: string;
   destinationRoot: string;
   worktrees: WorktreeInfo[];
+  /** Allow the current checkout to also be the source (used by `select`). */
+  allowSameRoot?: boolean;
 }
 
 export async function resolveSource(options: ResolveSourceOptions): Promise<string> {
@@ -65,7 +67,7 @@ export async function resolveSource(options: ResolveSourceOptions): Promise<stri
   }
 
   const destinationReal = await realpath(options.destinationRoot).catch(() => path.resolve(options.destinationRoot));
-  if (resolved === destinationReal) {
+  if (resolved === destinationReal && !options.allowSameRoot) {
     throw new ToolError(
       "SOURCE_IS_DESTINATION",
       "The source checkout is the current checkout, so there is nothing to link.",

@@ -85,6 +85,31 @@ describe("resolveSource", () => {
     ).rejects.toMatchObject({ code: "SOURCE_IS_DESTINATION" });
   });
 
+  it("allows the current checkout when allowSameRoot is set", async () => {
+    await expect(
+      resolveSource({
+        destinationRoot: worktree,
+        worktrees: [worktreeInfo(worktree)],
+        allowSameRoot: true,
+      }),
+    ).resolves.toBe(await realpath(worktree));
+  });
+
+  it("allows --from equal to the destination only with allowSameRoot", async () => {
+    await expect(
+      resolveSource({
+        from: worktree,
+        destinationRoot: worktree,
+        worktrees: [],
+        allowSameRoot: true,
+      }),
+    ).resolves.toBe(await realpath(worktree));
+
+    await expect(
+      resolveSource({ from: worktree, destinationRoot: worktree, worktrees: [] }),
+    ).rejects.toMatchObject({ code: "SOURCE_IS_DESTINATION" });
+  });
+
   it("rejects a bare primary worktree", async () => {
     await expect(
       resolveSource({
