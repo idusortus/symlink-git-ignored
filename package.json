@@ -1,6 +1,6 @@
 {
   "name": "symlink-git-ignored",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Create symlinks in a git worktree to the gitignored files an LLM coding assistant needs, driven by a committed .llm-files manifest.",
   "license": "MIT",
   "type": "module",
