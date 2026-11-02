@@ -43,6 +43,10 @@ node dist/cli.js --help
 
 `npm test` runs `tsc --noEmit` first (`pretest`). `npm publish` triggers `prepublishOnly`, which builds and tests again.
 
+## CI
+
+Both workflows run on `ubuntu-24.04` with `actions/checkout@v6` and `actions/setup-node@v6` (Node 24 action runtime). CI tests Node 22 and 24 and caches npm downloads. The tagged release workflow sets `package-manager-cache: false`, so publishes never depend on a mutable cache.
+
 ## Invariants to preserve
 
 - **Containment**: before writing, the deepest existing ancestor of a destination must resolve inside the destination checkout; otherwise the entry is `unsafe` and skipped. This lives in `findContainmentViolation` and is re-checked in `applyPlan`.

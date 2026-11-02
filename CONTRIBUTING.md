@@ -82,6 +82,10 @@ npx vitest
 
 The suite combines pure unit tests with integration tests that build a temporary git repository and worktree, then spawn the real CLI. Environment isolation, fixture details, and known gaps are documented in [docs/testing.md](docs/testing.md).
 
+## Continuous integration
+
+CI runs in GitHub Actions on `ubuntu-24.04` with `actions/checkout@v6` and `actions/setup-node@v6`. Pull-request and `master` runs test Node 22 and 24 and cache npm downloads; the tag-driven release workflow deliberately sets `package-manager-cache: false`. The publish job authenticates only through OIDC, never a token.
+
 ## Commits and pull requests
 
 - Use conventional prefixes: `feat:`, `fix:`, `docs:`, `test:`, `chore:`.
