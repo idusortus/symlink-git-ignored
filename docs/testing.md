@@ -5,7 +5,7 @@ The suite is Vitest 5. Unit tests cover pure logic; integration tests build a re
 ## Commands
 
 ```bash
-npm test                            # pretest runs tsc --noEmit, then all 71 tests
+npm test                            # pretest runs tsc --noEmit, then the full suite
 npx vitest run test/plan.test.ts    # one file
 npx vitest run -t "backup"          # tests whose name matches
 npx vitest                          # watch mode
@@ -18,7 +18,9 @@ npx vitest                          # watch mode
 | File | Covers |
 | --- | --- |
 | `test/helpers/repo.ts` | Fixture creation (`createRepoFixture`), `gitIn`, and `runCli` |
-| `test/cli.test.ts` | End-to-end `link`, `list`, `select` against a real worktree (POSIX only) |
+| `test/helpers/zip.ts` | Reads produced archives with `yauzl` for assertions |
+| `test/cli.test.ts` | End-to-end `link`, `list`, `select`, and `archive` against a real worktree (POSIX only) |
+| `test/archive.test.ts` | Archive planning, symlink expansion and containment, zip writing, output formatting (symlink and zip cases POSIX only) |
 | `test/plan.test.ts` | Planner statuses, `applyPlan`, containment, backup stamps (POSIX only) |
 | `test/manifest.test.ts` | Parsing, validation, shadowing/duplicates, atomic append |
 | `test/excludes.test.ts` | Built-in denylist and user patterns |
@@ -62,7 +64,9 @@ with the fixture environment and the worktree (or an explicit `cwd`) as the work
 - `--from` selects another worktree, `--dry-run` writes nothing.
 - `--json` emits a single parseable object; `list` distinguishes `not-linked` from `linked`.
 - `select --add`/`--all` filtering, tracked-path rejection, denylist rejection, `--expand`, non-TTY guidance, and manifest creation.
+- `archive` default output, `--output`, `--force` protection, `--dry-run`, `--json`, `--include-all`, `--exclude`, empty results, worktree symlink dereferencing, owner-only permissions, and the committable-archive warning.
 - Failure modes: running in the source checkout, outside git, and with a missing manifest.
+- Archive contents are read with `yauzl`, so tests assert entry names, contents, mtimes, and modes without requiring a system `unzip`.
 
 ## Writing a test
 

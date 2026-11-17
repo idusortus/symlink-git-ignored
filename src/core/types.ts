@@ -91,3 +91,43 @@ export interface SelectOptions {
   exclude?: string[];
   useDefaultExcludes?: boolean;
 }
+
+export type ArchiveStatus = "archived" | "would-archive";
+
+export type ArchiveProblemStatus = "missing-source" | "unsafe" | "cyclic" | "unsupported";
+
+export interface ArchiveEntry {
+  /** POSIX path relative to the checkout root. */
+  path: string;
+  /** Absolute path to read when writing the archive. */
+  sourcePath: string;
+  size: number;
+  mtime: Date;
+  /** POSIX file mode, including the file type bits. */
+  mode: number;
+}
+
+export interface ArchiveProblem {
+  path: string;
+  status: ArchiveProblemStatus;
+  message: string;
+}
+
+export interface ArchivePlan {
+  checkoutRoot: string;
+  archivePath: string;
+  dryRun: boolean;
+  entries: ArchiveEntry[];
+  problems: ArchiveProblem[];
+  totalBytes: number;
+  exitCode: number;
+}
+
+export interface ArchiveOptions {
+  output?: string;
+  force?: boolean;
+  dryRun?: boolean;
+  includeAll?: boolean;
+  exclude?: string[];
+  json?: boolean;
+}

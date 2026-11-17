@@ -95,13 +95,7 @@ export async function listWorktrees(root: string): Promise<WorktreeInfo[]> {
   return parseWorktrees(output);
 }
 
-export async function listIgnoredEntries(root: string, options: { collapsed: boolean }): Promise<IgnoredEntry[]> {
-  const args = ["ls-files", "--others", "--ignored", "--exclude-standard", "-z"];
-  if (options.collapsed) {
-    args.push("--directory");
-  }
-  const output = await runGit(args, root);
-
+function parseEntryRecords(output: string): IgnoredEntry[] {
   const seen = new Set<string>();
   const entries: IgnoredEntry[] = [];
   for (const record of splitNul(output)) {
@@ -113,6 +107,40 @@ export async function listIgnoredEntries(root: string, options: { collapsed: boo
     seen.add(entryPath);
     entries.push({ path: entryPath, isDirectory });
   }
+  return entries;
+}
 
-  return entries.sort((left, right) => left.path.localeCompare(right.path));
+export async function listIgnoredEntries(root: string, options: { collapsed: boolean }): Promise<IgnoredEntry[]> {
+  const args = ["ls-files", "--others", "--ignored", "--exclude-standard", "-z"];
+  if (options.collapsed) {
+    args.push("--directory");
+  }
+  const output = await runGit(args, root);
+  return parseEntryRecords(output).sort((left, right) => left.path.localeCompare(right.path));
+}
+
+export async function listUntrackedEntries(root: string): Promise<IgnoredEntry[]> {
+  const output = await runGit(["ls-files", "--others", "--exclude-standard", "-z"], root);
+  return parseEntryRecords(output).sort((left, right) => left.path.localeCompare(right.path));
+}
+
+/** Return true when git ignores the given checkout-relative path. */
+export async function isPathIgnoredByGit(root: string, relativePath: string): Promise<boolean> {
+  try {
+    await execFileAsync("git", ["-C", root, "check-ignore", "-q", "--", relativePath], {
+      encoding: "utf8",
+      windowsHide: true,
+    });
+    return true;
+  } catch (error) {
+    const failure = error as { code?: number | string; stderr?: string };
+    if (failure.code === 1) {
+      return false;
+    }
+    if (failure.code === "ENOENT") {
+      throw new ToolError("GIT_FAILED", "git is not installed or not available on PATH.");
+    }
+    const stderr = (failure.stderr ?? "").trim();
+    throw new ToolError("GIT_FAILED", `git check-ignore failed${stderr ? `: ${stderr}` : ""}`);
+  }
 }

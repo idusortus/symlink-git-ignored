@@ -13,6 +13,15 @@ describe("createExcludeMatcher", () => {
     expect(DEFAULT_EXCLUDED_DIRS.every((name) => matcher(name, true))).toBe(true);
   });
 
+  it("filters common .NET output directories at any depth", () => {
+    const matcher = createExcludeMatcher();
+
+    for (const name of ["bin", "obj", ".vs", "TestResults"]) {
+      expect(matcher(name, true)).toBe(true);
+      expect(matcher(`src/App/${name}`, true)).toBe(true);
+    }
+  });
+
   it("filters default binary extensions case-insensitively", () => {
     const matcher = createExcludeMatcher();
 

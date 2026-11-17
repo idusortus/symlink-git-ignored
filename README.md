@@ -19,6 +19,7 @@ Requires **Node >= 22.12.0**.
 ```bash
 npx symlink-git-ignored             # run once inside a worktree
 npx symlink-git-ignored select      # add gitignored paths to .llm-files
+npx symlink-git-ignored archive     # write gitignored files to a zip
 npm install -g symlink-git-ignored  # optional global install
 ```
 
@@ -92,6 +93,37 @@ Without `--all` or `--add`, `select` needs a TTY. `--add` rejects tracked paths,
 
 Selected paths are appended atomically, preserving comments and order. Because the manifest is tracked, the edit appears on the current branch — commit it when you want other worktrees to pick it up.
 
+### `archive`
+
+```bash
+npx symlink-git-ignored archive [--output <path>] [--force] [--dry-run] [--include-all] [--exclude <pattern...>] [--json]
+```
+
+Writes a zip of the gitignored files in the current checkout. It does not need `.llm-files`, and it works in the primary checkout or a linked worktree. Entries keep their repo-relative paths, so extracting the zip into a fresh clone restores the workspace layout, including `.env`, agent configuration, MCP credentials, and other local files that git cannot restore.
+
+| Flag | Meaning |
+| --- | --- |
+| `--output <path>` | Archive destination. Defaults to `<checkout>/llm-workspace.zip`; a relative path is resolved against the current directory. |
+| `--force` | Replace an existing archive. |
+| `--dry-run` | Print the plan; write no archive. |
+| `--include-all` | Include build artifacts and dependencies that the default denylist excludes. |
+| `--exclude <pattern...>` | Extra patterns to keep out of the archive. |
+| `--json` | Emit one JSON object on stdout. |
+
+Symlinks are dereferenced into real file and directory contents, so an archive made in a linked worktree does not restore links back to the primary checkout. Links are followed only when their targets resolve inside the current checkout or another registered worktree; missing, external, cyclic, and non-regular targets are reported and skipped, and the command exits 1 while still writing the safe entries. Build artifacts, dependency trees, and binaries are excluded by default; `--include-all` produces a literal dump, which can be very large.
+
+The default output is not automatically gitignored. Treat the archive as a secret: it is created with owner-only permissions (`0600`) on POSIX, and the command warns on stderr when the destination sits inside the checkout but git would let it be committed.
+
+Recovery:
+
+```bash
+git clone <repository> recovered
+cd recovered
+unzip ../llm-workspace.zip
+```
+
+Keep the archive out of source control by adding `llm-workspace.zip` to `.gitignore` or writing it outside the checkout with `--output`.
+
 ### `list`
 
 ```bash
@@ -127,21 +159,21 @@ Reports the current state of every manifest entry without changing anything:
 }
 ```
 
-Errors always go to stderr, never mixed into stdout.
+Errors always go to stderr, never mixed into stdout. `archive --json` emits one object with `checkout`, `archive`, `dryRun`, `entries`, `problems`, `summary`, and `exitCode`; each entry has `path`, `size`, and a status of `archived` or `would-archive`.
 
 ## Exit codes
 
 | Code | Meaning |
 | --- | --- |
-| `0` | Everything linked, already linked, repaired, or deliberately skipped. |
-| `1` | Missing/invalid manifest, unresolvable source, `missing-source`, `invalid`, `unsafe`, or a failed write. |
+| `0` | Everything linked, already linked, repaired, or deliberately skipped, or the archive was written, was empty, or a dry run was clean. |
+| `1` | Missing/invalid manifest, unresolvable source, `missing-source`, `invalid`, `unsafe`, a failed write, an archive problem, or an output conflict. |
 | `130` | The interactive picker was cancelled. |
 
 ## Build artifacts
 
-These are never offered by `select` and are never added to the manifest: `node_modules`, `dist`, `build`, `out`, `.next`, `.nuxt`, `.svelte-kit`, `.turbo`, `.cache`, `target`, `coverage`, `.venv`, `venv`, `__pycache__`, `.pytest_cache`, and files ending in `.exe`, `.dll`, `.so`, `.dylib`, `.o`, `.a`, `.node`, `.wasm`, `.pyc`, `.class`, `.jar`.
+These are never offered by `select` and are never added to the manifest: `node_modules`, `dist`, `build`, `out`, `bin`, `obj`, `.next`, `.nuxt`, `.svelte-kit`, `.turbo`, `.cache`, `.vs`, `target`, `coverage`, `TestResults`, `.venv`, `venv`, `__pycache__`, `.pytest_cache`, and files ending in `.exe`, `.dll`, `.so`, `.dylib`, `.o`, `.a`, `.node`, `.wasm`, `.pyc`, `.class`, `.jar`.
 
-Add your own with `--exclude '*.log' --exclude '*/tmp'`, or pass `--no-default-excludes` to disable the built-in list. The denylist only filters candidate discovery: entries you already put in `.llm-files` are always linked, so changing the denylist can never silently remove an existing link.
+Add your own with `--exclude '*.log' --exclude '*/tmp'`, or pass `--no-default-excludes` to disable the built-in list. The denylist only filters candidate discovery: entries you already put in `.llm-files` are always linked, so changing the denylist can never silently remove an existing link. The `archive` command applies the same denylist by default; use `archive --include-all` for a literal dump of every ignored path.
 
 ## Safety
 
@@ -154,8 +186,11 @@ Add your own with `--exclude '*.log' --exclude '*/tmp'`, or pass `--no-default-e
 
 - **The manifest is tracked.** `select` edits a committed file, so the change lands on the current branch and may need merging. This is deliberate: it keeps the list shared across worktrees instead of machine-local.
 - **Source detection assumes the primary worktree holds the real files.** That is the checkout you ran `git worktree add` from. If it moved or was removed, pass `--from`.
-- **POSIX is the supported platform.** On Windows, symlink creation needs Developer Mode or elevation; the tool reports the OS error instead of falling back to junctions or copies.
+- **POSIX is the supported platform.** On Windows, symlink creation needs Developer Mode or elevation; the tool reports the OS error instead of falling back to junctions or copies. Atomic archive replacement also relies on POSIX rename semantics.
 - **`--expand` can be slow** in repositories with large ignored trees. The default collapses wholly ignored directories into one candidate.
+- **`archive` follows only links inside the checkout and its registered worktrees.** A link to another location is reported as `unsafe` rather than copied. Broken targets, symlink loops, and non-regular files are reported and skipped.
+- **The archive is a best-effort snapshot.** Files changing or disappearing while it is written can abort the run; the previous archive is left in place.
+- **The archive is not encrypted.** It can contain credentials by design. Store and transfer it carefully, and keep it out of git.
 
 ## Releasing
 

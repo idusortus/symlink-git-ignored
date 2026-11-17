@@ -1,11 +1,11 @@
 # symlink-git-ignored — agent context
 
-`symlink-git-ignored` recreates the gitignored files an LLM coding assistant needs inside a git worktree. It reads a committed `.llm-files` manifest in the current checkout and creates relative symlinks to the same paths in a source checkout — by default the primary worktree, overridable with `--from`. The package is published on npm; `README.md` is the user guide.
+`symlink-git-ignored` recreates the gitignored files an LLM coding assistant needs inside a git worktree. It reads a committed `.llm-files` manifest in the current checkout and creates relative symlinks to the same paths in a source checkout — by default the primary worktree, overridable with `--from`. Its `archive` command writes those ignored files into a portable zip for recovery. The package is published on npm; `README.md` is the user guide.
 
 ## Stack
 
 - Node `>=22.12.0` (required by `commander@15`), TypeScript ESM with `NodeNext` resolution and explicit `.js` import specifiers.
-- Runtime dependencies: `commander` (CLI) and `prompts` (searchable multi-select). Do not add another runtime dependency without a clear need.
+- Runtime dependencies: `commander` (CLI), `prompts` (searchable multi-select), and `yazl` (streaming zip writer). Do not add another runtime dependency without a clear need.
 - Build: `tsc` → `dist/` (gitignored). Tests: Vitest 5, executed through `tsx`.
 - Specs: OpenSpec under `openspec/`.
 
@@ -17,15 +17,17 @@
 | `src/commands/link.ts` | Resolve roots, build the plan, apply it, print the report |
 | `src/commands/list.ts` | Build the plan in `list` mode; never mutates |
 | `src/commands/select.ts` | Discover/filter candidates, picker or `--add`/`--all`, append the manifest |
-| `src/core/git.ts` | Git subprocess helpers, worktree and ignored-entry parsing |
+| `src/commands/archive.ts` | Resolve the checkout, plan/write the zip, warn, print the report |
+| `src/core/archive.ts` | Archive planning, symlink expansion/containment, zip writing, output checks |
+| `src/core/git.ts` | Git subprocess helpers, worktree and ignored/untracked-entry parsing, `check-ignore` |
 | `src/core/manifest.ts` | `.llm-files` parse/validate/read and atomic append |
 | `src/core/source.ts` | Source-checkout resolution and rejection rules |
 | `src/core/plan.ts` | Per-entry statuses, containment check, link planning |
 | `src/core/apply.ts` | Create/replace/backup links with failure isolation |
 | `src/core/excludes.ts` | Built-in build-artifact denylist and pattern matcher |
 | `src/core/errors.ts` | `ToolError` codes, hints, and exit-code mapping |
-| `src/core/types.ts` | Manifest/plan types and the status/action vocabulary |
-| `src/output.ts` | Human report and `--json` serialization |
+| `src/core/types.ts` | Manifest/plan/archive types and the status/action vocabulary |
+| `src/output.ts` | Human reports and `--json` serialization |
 | `src/ui/picker.ts` | `prompts` multi-select and confirmation |
 | `src/version.ts` | Version read from `package.json` |
 
@@ -34,7 +36,7 @@
 ```bash
 npm ci
 npm run typecheck
-npm test                            # 71 tests in 6 suites; spawns the CLI in real git worktrees
+npm test                            # 99 tests in 7 suites; spawns the CLI in real git worktrees
 npx vitest run test/plan.test.ts    # one suite
 npx vitest                          # watch mode
 npm run build
@@ -53,15 +55,17 @@ Both workflows run on `ubuntu-24.04` with `actions/checkout@v6` and `actions/set
 - **Source resolution**: `link` and `list` refuse when the source checkout is the destination; `select` opts out (`allowSameRoot`) so `.llm-files` can be created in the primary checkout.
 - **Manifest validation**: reject absolute paths, `..` segments, paths resolving outside the checkout, and anything at or under `.git`. Nested entries lose to their ancestor and are reported as `shadowed`.
 - **Collisions skip by default**: `--force` replaces, `--backup` renames to `<name>.bak-<YYYYMMDDHHmmss>` (with numeric suffixes), dangling symlinks are repaired. `--force` plus `--backup` is a usage error.
-- **The denylist applies only to `select` candidate discovery.** Entries already in `.llm-files` are always linked.
+- **The denylist applies to `select` candidate discovery and `archive` contents.** Entries already in `.llm-files` are always linked.
+- **Archive symlinks** are dereferenced only when their target is inside the current checkout or a registered worktree; cycles are stopped by a real-path stack, and entry names are normalized POSIX paths.
+- **Archive containment and confidentiality**: write through a temp file, rename into place, use `0600` on POSIX, never include the archive itself, and warn when the destination is committable.
 - **Relative symlink targets** via `path.relative(dirname(dest), source)`, POSIX separators.
 - **No state file**: status is derived from `lstat`/`readlink` and source existence on every run. Re-runs are idempotent.
 - **Expected failures throw `ToolError`** with a code and optional hint; the CLI prints `error:`/`hint:` and exits 1 (130 when the picker is cancelled). Do not print stack traces for expected failures.
-- Keep the status vocabulary in `src/core/types.ts` synchronized with `src/output.ts`, `README.md`, and `openspec/specs/worktree-link/spec.md`.
+- Keep the link status vocabulary in `src/core/types.ts` synchronized with `src/output.ts`, `README.md`, `openspec/specs/worktree-link/spec.md`, and the archive status/problem vocabulary with `openspec/specs/workspace-archive/spec.md`.
 
 ## Testing
 
-Unit tests cover the manifest parser/validator/append, the denylist matcher, the worktree porcelain parser, source resolution, the planner, and apply. Integration tests create a real temporary git repository with a linked worktree and spawn the CLI. POSIX-only suites use `describe.skipIf(process.platform === "win32")`.
+Unit tests cover the manifest parser/validator/append, the denylist matcher, the worktree porcelain parser, source resolution, the planner, apply, archive planning, symlink expansion and containment, and zip writing. Integration tests create a real temporary git repository with a linked worktree and spawn the CLI. POSIX-only suites use `describe.skipIf(process.platform === "win32")`; zip contents are read with the test-only `yauzl` dependency.
 
 Any behavior change needs a unit or integration test, and a flag/status change also needs the README table and the matching spec updated. See `docs/testing.md` for the fixture and harness details.
 
@@ -75,7 +79,7 @@ openspec status --change "<name>"
 openspec validate "<name>" --strict
 ```
 
-Write `proposal.md`, the delta spec(s) under `specs/<capability>/spec.md`, `design.md`, and `tasks.md`, then implement against them. On archive, delta specs merge into `openspec/specs/`. Archived changes under `openspec/changes/archive/` are immutable. The three capabilities are `llm-file-manifest`, `worktree-link`, and `npm-release`.
+Write `proposal.md`, the delta spec(s) under `specs/<capability>/spec.md`, `design.md`, and `tasks.md`, then implement against them. On archive, delta specs merge into `openspec/specs/`. Archived changes under `openspec/changes/archive/` are immutable. The four capabilities are `llm-file-manifest`, `worktree-link`, `workspace-archive`, and `npm-release`.
 
 ## Release
 

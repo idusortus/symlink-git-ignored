@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 
+import { runArchive } from "./commands/archive.js";
 import { runLink } from "./commands/link.js";
 import { runList } from "./commands/list.js";
 import { runSelect } from "./commands/select.js";
@@ -27,6 +28,15 @@ interface SelectCliOptions {
   expand?: boolean;
   exclude?: string[];
   defaultExcludes?: boolean;
+}
+
+interface ArchiveCliOptions {
+  output?: string;
+  force?: boolean;
+  dryRun?: boolean;
+  includeAll?: boolean;
+  exclude?: string[];
+  json?: boolean;
 }
 
 async function execute(task: () => Promise<number>): Promise<void> {
@@ -65,6 +75,8 @@ Examples:
   $ npx symlink-git-ignored select          pick gitignored files to add
   $ npx symlink-git-ignored select --all    add every gitignored candidate
   $ npx symlink-git-ignored list --json     report link status as JSON
+  $ npx symlink-git-ignored archive         write gitignored files to llm-workspace.zip
+  $ npx symlink-git-ignored archive --dry-run
 `,
   );
 
@@ -104,6 +116,29 @@ selectCommand.action(() => {
       expand: options.expand,
       exclude: options.exclude,
       useDefaultExcludes: options.defaultExcludes !== false,
+    }),
+  );
+});
+
+const archiveCommand = program
+  .command("archive")
+  .description("Write gitignored workspace files to a zip")
+  .option("--output <path>", "archive destination (default: <checkout>/llm-workspace.zip)")
+  .option("--force", "replace an existing archive")
+  .option("--dry-run", "print the plan without writing an archive")
+  .option("--include-all", "include build artifacts and dependencies")
+  .option("--exclude <pattern...>", "extra patterns to keep out of the archive")
+  .option("--json", "print machine-readable JSON");
+archiveCommand.action(() => {
+  const options = archiveCommand.opts<ArchiveCliOptions>();
+  return execute(() =>
+    runArchive({
+      output: options.output,
+      force: options.force,
+      dryRun: options.dryRun,
+      includeAll: options.includeAll,
+      exclude: options.exclude,
+      json: options.json,
     }),
   );
 });

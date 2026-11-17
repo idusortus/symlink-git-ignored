@@ -1,4 +1,5 @@
 export type ToolErrorCode =
+  | "ARCHIVE_EXISTS"
   | "CANCELLED"
   | "GIT_FAILED"
   | "INVALID_ARGUMENT"

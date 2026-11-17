@@ -47,13 +47,17 @@
   ],
   "dependencies": {
     "commander": "^15.0.0",
-    "prompts": "^2.4.2"
+    "prompts": "^2.4.2",
+    "yazl": "^3.3.1"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
     "@types/prompts": "^2.4.9",
+    "@types/yauzl": "^3.4.0",
+    "@types/yazl": "^3.3.1",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.5"
+    "vitest": "^5.0.5",
+    "yauzl": "^3.4.0"
   }
 }

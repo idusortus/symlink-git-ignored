@@ -1,4 +1,4 @@
-import type { Plan, PlanStatus } from "./core/types.js";
+import type { ArchivePlan, ArchiveStatus, Plan, PlanStatus } from "./core/types.js";
 
 const SYMBOLS: Record<PlanStatus, string> = {
   linked: "+",
@@ -75,6 +75,79 @@ export function formatPlan(plan: Plan, options: { dryRun?: boolean } = {}): stri
   lines.push(`${total} ${noun}${summary ? `: ${summary}` : ""}${failed}`);
 
   return `${lines.join("\n")}\n`;
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+  const units = ["KB", "MB", "GB", "TB"];
+  let value = bytes / 1024;
+  let unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit += 1;
+  }
+  return `${value.toFixed(1)} ${units[unit]}`;
+}
+
+export function formatArchive(plan: ArchivePlan): string {
+  const lines: string[] = [];
+  lines.push(`checkout: ${plan.checkoutRoot}`);
+  lines.push(`archive:  ${plan.archivePath}`);
+  if (plan.dryRun) {
+    lines.push("dry run:  no archive was written");
+  }
+  lines.push("");
+
+  for (const entry of plan.entries) {
+    lines.push(`+ ${entry.path}  ${formatBytes(entry.size)}`);
+  }
+  for (const problem of plan.problems) {
+    lines.push(`! ${problem.path}  ${problem.status}  ${problem.message}`);
+  }
+
+  if (plan.entries.length === 0 && plan.problems.length === 0) {
+    lines.push("Nothing to archive.");
+  } else {
+    lines.push("");
+    const files = plan.entries.length === 1 ? "file" : "files";
+    const problemCount = plan.problems.length;
+    const problems = problemCount > 0 ? `, ${problemCount} ${problemCount === 1 ? "problem" : "problems"}` : "";
+    const dryRun = plan.dryRun ? " (dry run)" : "";
+    lines.push(
+      `${plan.entries.length} ${files} (${formatBytes(plan.totalBytes)})${problems}${dryRun}`,
+    );
+  }
+
+  return `${lines.join("\n")}\n`;
+}
+
+export function archiveToJson(plan: ArchivePlan): string {
+  const status: ArchiveStatus = plan.dryRun ? "would-archive" : "archived";
+  const payload = {
+    checkout: plan.checkoutRoot,
+    archive: plan.archivePath,
+    dryRun: plan.dryRun,
+    entries: plan.entries.map((entry) => ({
+      path: entry.path,
+      size: entry.size,
+      status,
+    })),
+    problems: plan.problems.map((problem) => ({
+      path: problem.path,
+      status: problem.status,
+      message: problem.message,
+    })),
+    summary: {
+      total: plan.entries.length,
+      bytes: plan.totalBytes,
+      problems: plan.problems.length,
+    },
+    exitCode: plan.exitCode,
+  };
+
+  return `${JSON.stringify(payload, null, 2)}\n`;
 }
 
 export function planToJson(plan: Plan): string {
